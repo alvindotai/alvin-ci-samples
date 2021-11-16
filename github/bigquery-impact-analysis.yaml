@@ -1,0 +1,55 @@
+name: alvin-check-sql-impact-analysis
+
+on:
+  pull_request:
+
+jobs:
+  impact-run:
+    runs-on: ubuntu-latest
+    env:
+      ALVIN_API_TOKEN: ${{ secrets.ALVIN_API_TOKEN }}
+      ALVIN_PLATFORM_ID: ${{ secrets.ALVIN_PLATFORM_ID }}
+      DBT_PROFILES_DIR: ${{ secrets.DBT_PROFILES_DIR }}
+      DBT_HOME: ${{ secrets.DBT_HOME }}
+      DEBUG: ${{ secrets.DEBUG }}
+
+      # SPECIFY database connection credentials as env vars below.
+      # Env var values to be fetched from as GitHub Secrets.
+      # HIGHLY recommended you use a unique set of connection credentials for this worklfow alone.
+
+      # Env vars for BigQuery
+      PROFILES_YML_BQ_PROJECT_ID: ${{ secrets.PROFILES_YML_BQ_PROJECT_ID }}
+      PROFILES_YML_BQ_DATASET_ID: ${{ secrets.PROFILES_YML_BQ_DATASET_ID }}
+      PROFILES_YML_BQ_PRIVATE_KEY_ID: ${{ secrets.PROFILES_YML_BQ_PRIVATE_KEY_ID }}
+      PROFILES_YML_BQ_PRIVATE_KEY: ${{ secrets.PROFILES_YML_BQ_PRIVATE_KEY }}
+      PROFILES_YML_BQ_CLIENT_EMAIL: ${{ secrets.PROFILES_YML_BQ_CLIENT_EMAIL }}
+      PROFILES_YML_BQ_CLIENT_ID: ${{ secrets.PROFILES_YML_BQ_CLIENT_ID }}
+      PROFILES_YML_BQ_AUTH_URI: ${{ secrets.PROFILES_YML_BQ_AUTH_URI }}
+      PROFILES_YML_BQ_TOKEN_URI: ${{ secrets.PROFILES_YML_BQ_TOKEN_URI }}
+      PROFILES_YML_BQ_PROVIDER_CERT_URL: ${{ secrets.PROFILES_YML_BQ_PROVIDER_CERT_URL }}
+      PROFILES_YML_BQ_CLIENT_CERT_URL: ${{ secrets.PROFILES_YML_BQ_CLIENT_CERT_URL }}
+    steps:
+    - name: Git checkout
+      uses: actions/checkout@v2
+    - name: 'log exec'
+      run: echo "$GITHUB_REF $GITHUB_REF_NAME $GITHUB_HEAD_REF" 
+    - uses: actions/setup-python@v2
+    - id: file_changes
+      uses: trilom/file-changes-action@v1.2.4
+      with:
+        output: ' '
+    - id: impact_analysis
+      uses: alvindotai/check-sql-impact@beta_v0.0.2
+      with:
+        args: ${{ steps.file_changes.outputs.files}}
+    - name: 'Comment PR'
+      uses: actions/github-script@v4
+      if: ${{ always() }}
+      with:
+        script: |
+          github.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: ${{ steps.impact_analysis.outputs.markdown_text }}
+          })

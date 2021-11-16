@@ -1,0 +1,89 @@
+include:
+  - template: 'Workflows/MergeRequest-Pipelines.gitlab-ci.yml'
+
+stages:
+  - compile
+  - test
+  - results
+
+# this is the same as the above, but for merge requests
+find-files-mr:
+  variables: 
+    GIT_DEPTH: 0
+  stage: compile
+  image: debian:stable-slim
+  script:
+    - apt update && apt install -yy --no-install-recommends git
+    - echo "target branch $CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+    - echo "working on files..."
+    - git diff --name-only origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME | grep '\.sql$' | tee changed-files.txt
+  artifacts:
+    paths:
+      - changed-files.txt
+    expose_as: 'changed files'
+
+# this runs after the "build" stage above, and consumes the
+# `changed-files.txt` artifact from that stage, regardless of the job
+# which generated it.
+log-file-changes:
+  stage: test  # It only starts when the job in the build stage completes successfully.
+  script:
+    - echo "working on files..."
+    - echo "$(cat changed-files.txt)"
+  
+# gitlab-runner exec shell impact-analysis-job
+impact-analysis-job: 
+  stage: test  # It only starts when the job in the build stage completes successfully.
+  services: 
+    - docker:dind
+  image: docker
+  script:
+    # - cd temp/alvin_hooks && docker build . -t alv/alvin-hooks && cd ../..
+    - EXIT_CODE=0
+    - |
+      ls -ls && \
+      docker run \
+      -e ALVIN_API_TOKEN \
+      -e ALVIN_PLATFORM_ID \
+      -e DBT_PROFILES_DIR \
+      -e DBT_HOME \
+      -e PROFILES_YML_SNOWFLAKE_ACCOUNT \
+      -e PROFILES_YML_SNOWFLAKE_USER \
+      -e PROFILES_YML_SNOWFLAKE_PASSWORD \
+      -e PROFILES_YML_SNOWFLAKE_ROLE \
+      -e PROFILES_YML_SNOWFLAKE_DATABASE \
+      -e PROFILES_YML_SNOWFLAKE_WAREHOUSE \
+      -e PROFILES_YML_SNOWFLAKE_SCHEMA \
+      -v "/var/run/docker.sock":"/var/run/docker.sock" \
+      -v "$(pwd)":"/github/workspace" \
+      alvindotai/alvil-cli:latest "$(cat changed-files.txt)" || EXIT_CODE=$?
+    - cp $DBT_HOME/report.json report.json 
+    - echo $EXIT_CODE exited
+  artifacts:
+    paths:
+      - report.json
+    expose_as: 'impact report'
+
+comment-report:
+  stage: results
+  script:
+    - apt-get update && apt-get install -y jq
+    - apt install -y curl
+    - |
+      cat > body.json << EOF
+      body=$(jq '.markdown_text' report.json)
+      EOF
+    - sed -i -r "s/\\\n/%0A/g" body.json
+    - sed -i -r "s/\\\\\"/'/g" body.json
+    - sed -i -r "s/\\\"//g" body.json
+    - echo $(cat body.json)
+    - 'CI_MERGE_REQUEST_ID=$(curl --request GET --header "Private-Token: $GITLAB_PERSONAL_API_PRIVATE_TOKEN" "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/repository/commits/$CI_COMMIT_SHA/merge_requests" --insecure | jq --raw-output ".[0].iid")'
+    - echo $CI_MERGE_REQUEST_ID $CI_PROJECT_ID
+    - 'curl -v --request POST --header "Private-Token: $GITLAB_PERSONAL_API_PRIVATE_TOKEN" --data-binary "@body.json" https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/merge_requests/$CI_MERGE_REQUEST_ID/notes --insecure'
+process-report-result:
+  stage: results
+  script:
+    - apt-get update && apt-get install -y jq
+    - status_code=$(jq '.status_code' report.json)
+    - echo $status_code
+    - exit $status_code
