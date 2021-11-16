@@ -13,11 +13,8 @@ renamed as (
     select
         id as payment_id,
         payment_method,
-        order_id,
-        -- just a comment this time, nothing to worry about
-        --`amount` is currently stored in cents, so we convert it to dollars
-        amount / 100 as amount
-
+        order_id
+        -- opsssss removed a column by mistake, I wonder if the reviewer will notice it!!!!!!
     from source
 
 )
