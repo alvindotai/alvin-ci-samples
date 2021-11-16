@@ -1,0 +1,44 @@
+# HEY!
+#
+# You should __NEVER__ check credentials into version control. Thanks for reading :)
+#
+# This 'dummy' file is here because we need to point the dbt compiler
+# to a valid profiles.yml file.
+# Normally, this is found in ~/.dbt/profiles.yml on your local machine.
+#     See docs: https://docs.getdbt.com/dbt-cli/configure-your-profile#how-to-connect-to-your-warehouse-when-using-the-cli
+#
+# In the '.github/workflows/sqlfluff_lint_dbt_models.yml', we set the
+# DBT_PROFILES_DIR environment variable to point the dbt compiler to look for
+# the 'surfline' profile defined in this dummy profiles.yml file.
+# You should __NEVER__ check credentials into version control. Thanks for reading :)
+#
+# NOTE:
+# If the 'pass' key-value below has quotes around it in your local profiles.yml
+# file, remove the qoutes when pasting into GitHub Secrets. Otherwise
+# you'll get errors.
+
+config:
+    send_anonymous_usage_stats: False
+    use_colors: True
+
+jaffle_shop:
+  target: jaffle_shop
+  outputs:
+    jaffle_shop:
+      type: bigquery
+      method: service-account-json
+      project: "{{ env_var('PROFILES_YML_BQ_PROJECT_ID') }}"
+      dataset: "{{ env_var('PROFILES_YML_BQ_DATASET_ID') }}"
+      threads: 1
+      # These fields come from the service account json keyfile
+      keyfile_json:
+        type: "service_account"
+        project_id: "{{ env_var('PROFILES_YML_BQ_PROJECT_ID') }}"
+        private_key_id: "{{ env_var('PROFILES_YML_BQ_PRIVATE_KEY_ID') }}"
+        private_key: "{{ env_var('PROFILES_YML_BQ_PRIVATE_KEY') }}"
+        client_email: "{{ env_var('PROFILES_YML_BQ_CLIENT_EMAIL') }}"
+        client_id: "{{ env_var('PROFILES_YML_BQ_CLIENT_ID') }}"
+        auth_uri: "{{ env_var('PROFILES_YML_BQ_AUTH_URI') }}"
+        token_uri: "{{ env_var('PROFILES_YML_BQ_TOKEN_URI') }}"
+        auth_provider_x509_cert_url: "{{ env_var('PROFILES_YML_BQ_PROVIDER_CERT_URL') }}"
+        client_x509_cert_url: "{{ env_var('PROFILES_YML_BQ_CLIENT_CERT_URL') }}"
