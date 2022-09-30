@@ -10,8 +10,11 @@ jobs:
       ALVIN_API_TOKEN: ${{ secrets.ALVIN_API_TOKEN }}
       ALVIN_PLATFORM_ID: ${{ secrets.ALVIN_PLATFORM_ID }}
       DBT_PROFILES_DIR: ${{ secrets.DBT_PROFILES_DIR }}
-      DBT_HOME: ${{ secrets.DBT_HOME }}
+      DBT_ROOT_DIR: ${{ secrets.DBT_ROOT_DIR }}
+      ROOT_DIR: ${{ secrets.ROOT_DIR }}
       DEBUG: ${{ secrets.DEBUG }}
+      DIALECT: ${{ secrets.DIALECT }}
+      DBT_TARGET: ${{ secrets.DBT_TARGET }}
 
       # SPECIFY database connection credentials as env vars below.
       # Env var values to be fetched from as GitHub Secrets.
@@ -39,7 +42,7 @@ jobs:
       with:
         output: ' '
     - id: impact_analysis
-      uses: alvindotai/check-sql-impact@beta_v0.0.2
+      uses: alvindotai/check-sql-impact@beta_v0.0.9
       with:
         args: ${{ steps.file_changes.outputs.files}}
     - name: 'Comment PR'
