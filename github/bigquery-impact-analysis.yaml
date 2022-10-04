@@ -12,9 +12,10 @@ jobs:
       DBT_PROFILES_DIR: ${{ secrets.DBT_PROFILES_DIR }}
       DBT_ROOT_DIR: ${{ secrets.DBT_ROOT_DIR }}
       ROOT_DIR: ${{ secrets.ROOT_DIR }}
+      DBT_TARGET: ${{ secrets.DBT_TARGET}}
       DEBUG: ${{ secrets.DEBUG }}
       DIALECT: ${{ secrets.DIALECT }}
-      DBT_TARGET: ${{ secrets.DBT_TARGET }}
+      ALVIN_VERBOSE_LOG: ${{ secrets.ALVIN_VERBOSE_LOG}}
 
       # SPECIFY database connection credentials as env vars below.
       # Env var values to be fetched from as GitHub Secrets.
