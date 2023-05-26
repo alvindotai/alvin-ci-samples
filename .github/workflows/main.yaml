@@ -10,7 +10,10 @@ jobs:
       ALVIN_API_TOKEN: ${{ secrets.ALVIN_API_TOKEN }}
       ALVIN_PLATFORM_ID: ${{ secrets.ALVIN_PLATFORM_ID }}
       DBT_PROFILES_DIR: ${{ secrets.DBT_PROFILES_DIR }}
-      DBT_HOME: ${{ secrets.DBT_HOME }}
+      DBT_ROOT_DIR: ${{ secrets.DBT_ROOT_DIR }}
+      DBT_TARGET: ${{ secrets.DBT_TARGET}}
+      DIALECT: ${{ secrets.DIALECT }}
+      ALVIN_VERBOSE_LOG: ${{ secrets.ALVIN_VERBOSE_LOG}}
 
       # SPECIFY database connection credentials as env vars below.
       # Env var values to be fetched from as GitHub Secrets.
