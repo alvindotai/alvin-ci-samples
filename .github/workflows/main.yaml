@@ -47,7 +47,7 @@ jobs:
       with:
         output: ' '
     - id: impact_analysis
-      uses: alvindotai/check-sql-impact@beta_v0.0.2
+      uses: alvindotai/check-sql-impact@beta_v0.1.0
       with:
         args: ${{ steps.file_changes.outputs.files}}
     - name: 'Comment PR'
