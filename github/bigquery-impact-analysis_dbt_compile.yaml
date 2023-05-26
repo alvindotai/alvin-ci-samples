@@ -40,6 +40,18 @@ jobs:
       uses: trilom/file-changes-action@v1.2.4
       with:
         output: ' '
+    - name: dbt-action
+      id: dbt-deps
+      uses: mwhitaker/dbt-action@v1.0.4
+      with:
+        dbt_command: "dbt deps"
+        dbt_project_folder: "demo-bigquery"
+    - name: dbt-action
+      id: dbt-compile
+      uses: mwhitaker/dbt-action@v1.0.4
+      with:
+        dbt_command: "dbt compile"
+        dbt_project_folder: "demo-bigquery"
     - id: impact_analysis
       uses: alvindotai/check-sql-impact@beta_v0.1.0
       with:
