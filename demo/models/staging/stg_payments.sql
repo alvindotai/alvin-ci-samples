@@ -15,6 +15,7 @@ renamed as (
         payment_method,
         order_id
         --
+        --
         -- opsssss removed a column by mistake, I wonder if the reviewer will notice it!!!!!!
     from source
 
